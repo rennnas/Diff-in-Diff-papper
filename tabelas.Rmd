@@ -1,0 +1,264 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+---
+title: "Tabelas"
+author: "Renan Magalhães"
+date: "16/06/2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+library(tidyverse)
+library(tidyr)
+library(dplyr)
+library(readxl)
+library(stargazer)
+library(modelsummary)
+library(ggplot2)
+library(wooldridge)
+library(ggcorset)
+library(xtable)
+library(kableExtra)
+```
+
+```{r}
+comunas_tabelas <- read_excel("Comunas_trabalhando.xlsx", col_names = TRUE)
+```
+
+Tabela 1, sintetizando dados da Comuna 1
+
+```{r}
+comunas_table <- comunas_tabelas %>%
+  select(Comuna, Tipo, Gama, Pre_N, Post_N) %>%
+  group_by(Comuna) %>%
+  head(39)
+```
+
+```{r}
+comunas_table %>%
+  kbl(caption = "Table 1") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+Modelo de Regrassão
+```{r}
+model1 <- lm(Change_N ~ Treatment + Post_N + Treatment * Post_N + Gama, data = comunas_tabelas)
+```
+
+
+```{r}
+stargazer(model1, 
+          title = "Model 1",
+          type = "text")
+```
+------------------------ modelo 2, menor número de tratados -----
+
+
+```{r}
+comunas_modelo2 <- read_excel("Modelo_2_Comunas.xlsx", col_names = TRUE)
+
+```
+
+
+```{r}
+model2 <- lm(Change_N ~ Treatment + Post_N + Treatment * Post_N + Gama, data = comunas_modelo2)
+```
+
+```{r}
+stargazer(model2, 
+          title = "Model 2",
+          type = "text")
+```
+
+
+```{r}
+stargazer(model1, model2,
+          type = "text")
+```
+
+
+
+
+```{r}
+comunas_teste_22_06 <- read_excel("Comunas_Teste_Ano_2.xlsx", col_names = TRUE)
+
+```
+
+
+Plot 1 - Modelo 1 - Variação de Centros Culturais
+
+```{r}
+plot_tabela1_modelo1 <- comunas_teste_22_06 %>%
+  mutate(Treatment = factor(Treatment)) %>%
+  mutate(Ano = factor(Ano)) %>%
+  group_by(Ano, Treatment) %>%
+  summarize(mean_change = mean(Change_N),
+            se_change = sd(Change_N) / sqrt(n()),
+            upper = mean_change + (-1.96 * se_change),
+            lower = mean_change + (1.96 * se_change))
+```
+
+```{r}
+plot_tabela1_modelo1
+```
+
+
+```{r}
+plot_1 <- ggplot(plot_tabela1_modelo1, aes(x = Ano, y = mean_change, color = Treatment)) +
+  geom_pointrange(aes(ymin = lower, ymax = upper)) +
+  geom_line(aes(group = Treatment)) +
+  labs(x = "Year", y = "Mean Change")
+```
+
+```{r}
+plot_1
+```
+
+Plot 2 - Modelo 1 - Variação de Rendimento
+
+```{r}
+plot_tabela2_modelo1 <- comunas_teste_22_06 %>%
+  mutate(Treatment = factor(Treatment)) %>%
+  mutate(Ano = factor(Ano)) %>%
+  group_by(Ano, Treatment) %>%
+  summarize(mean_change = mean(Change_Ren),
+            se_change = sd(Change_Ren) / sqrt(n()),
+            upper = mean_change + (-1.96 * se_change),
+            lower = mean_change + (1.96 * se_change))
+```
+
+```{r}
+plot_tabela2_modelo1
+```
+
+```{r}
+plot_2 <- ggplot(plot_tabela2_modelo1, aes(x = Ano, y = mean_change, color = Treatment)) +
+  geom_pointrange(aes(ymin = lower, ymax = upper)) +
+  geom_line(aes(group = Treatment)) +
+   labs(x = "Year", y = "Mean Change")
+```
+
+```{r}
+plot_2
+```
+
+Plot 3 - Modelo 2 - Variação de Centros Culturais
+
+
+```{r}
+comunas_teste_modelo_2 <- read_excel("Comunas_Teste_Ano_2_Modelo _2.xlsx", col_names = TRUE)
+
+```
+
+```{r}
+plot_tabela3_modelo2 <- comunas_teste_modelo_2 %>%
+  mutate(Treatment = factor(Treatment)) %>%
+  mutate(Ano = factor(Ano)) %>%
+  group_by(Ano, Treatment) %>%
+  summarize(mean_change = mean(Change_N),
+            se_change = sd(Change_N) / sqrt(n()),
+            upper = mean_change + (-1.96 * se_change),
+            lower = mean_change + (1.96 * se_change))
+```
+```{r}
+plot_tabela3_modelo2
+```
+
+
+```{r}
+plot_3 <- ggplot(plot_tabela3_modelo2, aes(x = Ano, y = mean_change, color = Treatment)) +
+  geom_pointrange(aes(ymin = lower, ymax = upper)) +
+  geom_line(aes(group = Treatment)) +
+  labs(x = "Year", y = "Mean Change")
+```
+
+```{r}
+plot_3
+```
+```{r}
+plot_tabela4_modelo2 <- comunas_teste_modelo_2 %>%
+  mutate(Treatment = factor(Treatment)) %>%
+  mutate(Ano = factor(Ano)) %>%
+  group_by(Ano, Treatment) %>%
+  summarize(mean_change = mean(Change_Ren),
+            se_change = sd(Change_Ren) / sqrt(n()),
+            upper = mean_change + (-1.96 * se_change),
+            lower = mean_change + (1.96 * se_change))
+```
+
+```{r}
+plot_tabela4_modelo2
+```
+```{r}
+plot_4 <- ggplot(plot_tabela4_modelo2, aes(x = Ano, y = mean_change, color = Treatment)) +
+  geom_pointrange(aes(ymin = lower, ymax = upper)) +
+  geom_line(aes(group = Treatment)) +
+   labs(x = "Year", y = "Mean Change")
+```
+
+```{r}
+plot_4
+```
+
+Investigando o impacto da faixa de rendimento dos centros culturais em relação a variação do número destes
+
+```{r}
+plot_gama_modelo_1 <- comunas_teste_22_06 %>%
+  mutate(Treatment = factor(Treatment)) %>%
+  group_by(Gama, Treatment) %>%
+  summarize(mean_change = mean(Change_N),
+            se_change = sd(Change_N) / sqrt(n()),
+            upper = mean_change + (-1.96 * se_change),
+            lower = mean_change + (1.96 * se_change))
+```
+
+```{r}
+plot_gama_modelo_1
+```
+
+
+Plot 5 - Modelo 1 - Variação número estabelecimentos pela Gama de Rendimentos
+
+```{r}
+plot_5 <- ggplot(plot_gama_modelo_1, aes(x = Treatment, y = mean_change, color = Gama)) +
+  geom_pointrange(aes(ymin = lower, ymax = upper), size = 1) +
+  geom_line(aes(group = Gama))
+```
+
+```{r}
+plot_5
+```
+Plot 6 - Modelo 2 - Variação número estabelecimentos pela Gama de Rendimentos
+
+
+```{r}
+plot_gama_modelo_2 <- comunas_teste_modelo_2 %>%
+  mutate(Treatment = factor(Treatment)) %>%
+  group_by(Gama, Treatment) %>%
+  summarize(mean_change = mean(Change_N),
+            se_change = sd(Change_N) / sqrt(n()),
+            upper = mean_change + (-1.96 * se_change),
+            lower = mean_change + (1.96 * se_change))
+```
+```{r}
+plot_gama_modelo_2 
+```
+
+```{r}
+plot_6 <- ggplot(plot_gama_modelo_2, aes(x = Treatment, y = mean_change, color = Gama)) +
+  geom_pointrange(aes(ymin = lower, ymax = upper), size = 1) +
+  geom_line(aes(group = Gama))
+```
+
+
+```{r}
+plot_6
+```
+
+
